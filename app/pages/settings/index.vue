@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
-const { $api } = useNuxtApp()
 
 const activeTab = ref('courts')
 const loading = ref(false)
@@ -35,7 +34,7 @@ const fetchSettings = async () => {
   fetching.value = true
   errorMsg.value = ''
   try {
-    const res: any = await $api('/settings')
+    const res: any = await settingsService().get()
     const payload = res?.data ?? {}
     if (Object.keys(payload).length > 0) {
       settingsForm.value = { ...settingsForm.value, ...payload }
@@ -52,10 +51,7 @@ const saveSettings = async () => {
   await formRef.value?.validate()
   loading.value = true
   try {
-    const res: any = await $api('/settings', {
-      method: 'PUT',
-      body: settingsForm.value 
-    })
+    const res: any = await settingsService().update(settingsForm.value as Record<string, unknown>)
     settingsForm.value = { ...settingsForm.value, ...(res?.data ?? {}) }
     message.success('Settings updated successfully.')
   } catch (error) {

@@ -8,7 +8,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       /** Laravel API prefix, e.g. http://eco-globe.test/api */
-      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api',
+      apiBaseUrl:
+        process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api',
       /** Laravel app origin for Sanctum CSRF, e.g. http://eco-globe.test */
       backendUrl: process.env.NUXT_PUBLIC_BACKEND_URL || 'http://localhost:8000',
     },
@@ -20,6 +21,10 @@ export default defineNuxtConfig({
     'nuxt-lucide-icons',
     '@nuxtjs/google-fonts',
   ],
+
+  imports: {
+    dirs: ['services'],
+  },
 
   googleFonts: {
     families: {

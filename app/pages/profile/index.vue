@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
@@ -18,9 +18,7 @@ const form = ref({
 
 onMounted(async () => {
   try {
-    const { $api } = useNuxtApp()
-    // Explicitly call the API to fetch current user data to ensure the form populates
-    const res: any = await $api('/profile')
+    const res: any = await authService().profile()
     const user = res?.data
     if (user) {
       form.value.name = user.name || ''
@@ -35,8 +33,7 @@ const handleUpdateProfile = async () => {
   loading.value = true
   errorMsg.value = ''
   try {
-    const { $api } = useNuxtApp()
-    await $api('/profile', { method: 'PUT', body: form.value })
+    await authService().updateProfile(form.value as Record<string, unknown>)
     
     // Refresh auth user state
     await auth.fetchProfile()

@@ -34,18 +34,16 @@ export const useUsersStore = defineStore('users', {
     async fetchUsers(page = 1, search = '') {
       this.loading = true
       try {
-        const { $api } = useNuxtApp()
-        
         const params = new URLSearchParams({
           page: page.toString(),
           per_page: this.pagination.perPage.toString(),
         })
-        
+
         if (search) {
           params.append('search', search)
         }
 
-        const res: PaginatedResponse<User> = await $api(`/users?${params.toString()}`)
+        const res: PaginatedResponse<User> = await userService().list(params.toString())
 
         this.users = res.data
         this.pagination = {
@@ -65,11 +63,7 @@ export const useUsersStore = defineStore('users', {
     async createUser(data: Partial<User>) {
       this.loading = true
       try {
-        const { $api } = useNuxtApp()
-        const res: User = await $api('/users', {
-          method: 'POST',
-          body: data,
-        })
+        const res: User = await userService().create(data)
         
         this.users.unshift(res)
         this.pagination.total++
@@ -86,11 +80,7 @@ export const useUsersStore = defineStore('users', {
     async updateUser(id: number, data: Partial<User>) {
       this.loading = true
       try {
-        const { $api } = useNuxtApp()
-        const res: User = await $api(`/users/${id}`, {
-          method: 'PUT',
-          body: data,
-        })
+        const res: User = await userService().update(id, data)
         
         const index = this.users.findIndex(u => u.id === id)
         if (index !== -1) {
@@ -109,10 +99,7 @@ export const useUsersStore = defineStore('users', {
     async deleteUser(id: number) {
       this.loading = true
       try {
-        const { $api } = useNuxtApp()
-        await $api(`/users/${id}`, {
-          method: 'DELETE',
-        })
+        await userService().delete(id)
         
         this.users = this.users.filter(u => u.id !== id)
         this.pagination.total--
@@ -128,8 +115,7 @@ export const useUsersStore = defineStore('users', {
 
     async getUser(id: number) {
       try {
-        const { $api } = useNuxtApp()
-        const res: User = await $api(`/users/${id}`)
+        const res: User = await userService().get(id)
         return res
       } catch (error) {
         console.error('Failed to get user:', error)

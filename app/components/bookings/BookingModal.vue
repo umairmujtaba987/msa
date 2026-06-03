@@ -8,14 +8,13 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['update:visible', 'saved'])
-const { $api } = useNuxtApp()
 
 const loading = ref(false)
 const configLoading = ref(false)
 const priceLoading = ref(false)
 const configError = ref('')
-const autoPriceEnabled = ref(true)
-const customPrice = ref(false)
+const autoPriceEnabled = ref(false)
+const customPrice = ref(true)
 
 type CourtOption = {
   id: string
@@ -60,7 +59,7 @@ const resetForm = () => {
   form.end_time = null
   form.price = 0
   form.notes = ''
-  autoPriceEnabled.value = true
+  autoPriceEnabled.value = false
   customPrice.value = false
 }
 
@@ -78,7 +77,7 @@ const fetchBookingConfig = async () => {
   configLoading.value = true
   configError.value = ''
   try {
-    const res: any = await $api('/booking-config')
+    const res: any = await bookingService().getConfig()
     bookingConfig.value = res?.data || { courts: [], pricing: {} }
     if (!bookingConfig.value.courts.length) {
       configError.value = 'No active courts are configured. Please enable courts in Settings first.'
@@ -92,13 +91,15 @@ const fetchBookingConfig = async () => {
 }
 
 const recalculatePrice = async (dependencyChanged = false) => {
+  
+  if (!autoPriceEnabled.value) {
+    return  // 🛑 Exit early — respect manual mode entirely
+  }
+
   if (dependencyChanged) {
     customPrice.value = false
   }
 
-  if (!autoPriceEnabled.value) {
-    return
-  }
 
   if (customPrice.value && !dependencyChanged) {
     return
@@ -111,14 +112,11 @@ const recalculatePrice = async (dependencyChanged = false) => {
 
   priceLoading.value = true
   try {
-    const res: any = await $api('/bookings/calculate-price', {
-      method: 'POST',
-      body: {
-        court: form.court,
-        sport: form.sport,
-        start_time: form.start_time,
-        end_time: form.end_time || null,
-      },
+    const res: any = await bookingService().calculatePrice({
+      court: form.court,
+      sport: form.sport,
+      start_time: form.start_time,
+      end_time: form.end_time || null,
     })
     form.price = Number(res?.data?.price || 0)
   } catch {
@@ -132,8 +130,8 @@ watch(() => props.visible, (newVal) => {
   if (newVal) {
     fetchBookingConfig()
     if (props.booking) {
-      autoPriceEnabled.value = true
-      customPrice.value = false
+      autoPriceEnabled.value = false
+      customPrice.value = true
       form.id = props.booking.id
       form.customer_name = props.booking.customer_name
       form.phone_number = props.booking.phone_number
@@ -195,9 +193,9 @@ const handleSave = async () => {
     }
     
     if (form.id) {
-      await $api(`/bookings/${form.id}`, { method: 'PUT', body: payload })
+      await bookingService().update(form.id, payload as Record<string, unknown>)
     } else {
-      await $api('/bookings', { method: 'POST', body: payload })
+      await bookingService().create(payload as Record<string, unknown>)
     }
     
     emit('saved')
@@ -235,14 +233,14 @@ const handleSave = async () => {
       </div>
 
       <div class="flex-row">
-        <a-form-item label="Court" required style="flex: 1">
-          <a-select v-model:value="form.court" :disabled="!bookingConfig.courts.length">
-            <a-select-option v-for="court in bookingConfig.courts" :key="court.id" :value="court.id">
+        <a-form-item label="Select Court" required style="flex: 1">
+          <a-select  v-model:value="form.court" :disabled="!bookingConfig.courts.length">
+            <a-select-option  v-for="court in bookingConfig.courts" :key="court.id" :value="court.id">
               {{ court.label }}
             </a-select-option>
           </a-select>
         </a-form-item>
-        <a-form-item label="Sport" required style="flex: 1">
+        <a-form-item label="Select Sport" required style="flex: 1">
           <a-select v-model:value="form.sport" :disabled="!availableSports.length">
             <a-select-option v-for="sport in availableSports" :key="sport" :value="sport">
               {{ sport }}

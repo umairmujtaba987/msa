@@ -21,8 +21,7 @@ export const useRolesStore = defineStore('roles', {
     async fetchRoles() {
       this.loading = true
       try {
-        const { $api } = useNuxtApp()
-        const res: Role[] = await $api('/roles')
+        const res: Role[] = await roleService().getAll()
         this.roles = res
       } catch (error) {
         console.error('Failed to fetch roles:', error)
@@ -35,11 +34,7 @@ export const useRolesStore = defineStore('roles', {
     async createRole(data: Partial<Role>) {
       this.loading = true
       try {
-        const { $api } = useNuxtApp()
-        const res: Role = await $api('/roles', {
-          method: 'POST',
-          body: data,
-        })
+        const res: Role = await roleService().create({ name: data.name! })
         this.roles.push(res)
         return res
       } catch (error) {
@@ -53,11 +48,7 @@ export const useRolesStore = defineStore('roles', {
     async updateRole(id: number, data: Partial<Role>) {
       this.loading = true
       try {
-        const { $api } = useNuxtApp()
-        const res: Role = await $api(`/roles/${id}`, {
-          method: 'PUT',
-          body: data,
-        })
+        const res: Role = await roleService().update(id, { name: data.name! })
         
         const index = this.roles.findIndex(r => r.id === id)
         if (index !== -1) {
@@ -76,10 +67,7 @@ export const useRolesStore = defineStore('roles', {
     async deleteRole(id: number) {
       this.loading = true
       try {
-        const { $api } = useNuxtApp()
-        await $api(`/roles/${id}`, {
-          method: 'DELETE',
-        })
+        await roleService().delete(id)
         this.roles = this.roles.filter(r => r.id !== id)
         return true
       } catch (error) {

@@ -4,7 +4,6 @@ import { Modal } from 'ant-design-vue'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
-const { $api } = useNuxtApp()
 const authStore = useAuthStore()
 
 const isSuperadmin = computed(() => authStore.isSuperadmin)
@@ -32,7 +31,7 @@ const columns = computed(() => {
 const fetchUsers = async (page = 1) => {
   loading.value = true
   try {
-    const res: any = await $api(`/users?page=${page}`)
+    const res: any = await userService().list(`page=${page}`)
     users.value = res.data
     pagination.value.total = res.total
     pagination.value.current = res.current_page
@@ -70,7 +69,7 @@ const confirmDelete = (record: any) => {
     cancelText: 'Cancel',
     onOk: async () => {
       try {
-        await $api(`/users/${record.id}`, { method: 'DELETE' })
+        await userService().delete(record.id)
         fetchUsers(pagination.value.current)
       } catch (e: any) {
         Modal.error({

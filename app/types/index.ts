@@ -44,8 +44,5 @@ export interface PaginatedResponse<T> {
   total: number
 }
 
-export interface Role as RoleType {
-  id: number
-  name: string
-  guard_name: string
-}
+/** Alias for clarity where `Role` is used as a value type */
+export type RoleType = Role

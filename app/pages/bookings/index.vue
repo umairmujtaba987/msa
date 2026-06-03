@@ -3,8 +3,6 @@ import { ref, onMounted } from 'vue'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
-const { $api } = useNuxtApp()
-
 const loading = ref(false)
 const configLoading = ref(false)
 const bookings = ref([])
@@ -27,7 +25,7 @@ const selectedBooking = ref<any>(null)
 const fetchBookingConfig = async () => {
   configLoading.value = true
   try {
-    const res: any = await $api('/booking-config')
+    const res: any = await bookingService().getConfig()
     const config = res?.data || { courts: [], pricing: {} }
     courtOptions.value = config.courts || []
     sportOptions.value = Object.keys(config.pricing || {})
@@ -60,7 +58,7 @@ const fetchBookings = async (page = 1) => {
     if (filters.value.court) params.append('court', filters.value.court)
     if (filters.value.status) params.append('status', filters.value.status)
 
-    const res: any = await $api(`/bookings?${params.toString()}`)
+    const res: any = await bookingService().list(params.toString())
     bookings.value = res.data
     pagination.value.total = res.total
     pagination.value.current = res.current_page
@@ -91,7 +89,7 @@ const openEditModal = (record: any) => {
 
 const updateStatus = async (id: number, action: string) => {
   try {
-    await $api(`/bookings/${id}/${action}`, { method: 'PATCH' })
+    await bookingService().patchStatus(id, action as 'paid' | 'confirm' | 'cancel')
     fetchBookings(pagination.value.current)
   } catch (e) {
     console.error(e)

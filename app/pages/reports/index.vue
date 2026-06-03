@@ -3,8 +3,6 @@ import { ref, onMounted } from 'vue'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
-const { $api } = useNuxtApp()
-
 const stats = ref({ totalBookings: 0, totalIncome: 0 })
 const tableData = ref([])
 const loading = ref(false)
@@ -32,7 +30,7 @@ const runReport = async () => {
     const params = buildFilterParams()
     
     // Using the same endpoint but visualizing it uniquely
-    const res: any = await $api(`/bookings?per_page=50&` + params.toString())
+    const res: any = await bookingService().list(`per_page=50&${params.toString()}`)
     tableData.value = res.data
     
     // Calc summary mapping locally for prototype, typically backend provides aggregations
@@ -103,19 +101,7 @@ const exportPdf = async () => {
   exportLoading.value = true
   try {
     const params = buildFilterParams()
-    const token = useCookie('token').value
-    const config = useRuntimeConfig()
-
-    const response = await fetch(`${config.public.apiBaseUrl}/reports/bookings/export?${params.toString()}`, {
-      method: 'GET',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
-
-    if (!response.ok) {
-      throw new Error('Failed to export PDF')
-    }
-
-    const blob = await response.blob()
+    const blob = await reportService().exportBookingsPdf(params.toString())
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url

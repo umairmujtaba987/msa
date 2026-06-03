@@ -73,12 +73,7 @@ export const useAuthStore = defineStore('auth', {
 
     async login(payload: { email: string; password: string }) {
       try {
-        const { $api } = useNuxtApp()
-
-        const res: LoginResponse = await $api('/login', {
-          method: 'POST',
-          body: payload,
-        })
+        const res: LoginResponse = await authService().login(payload)
 
         this.token = res.token
         this.user = res.user
@@ -100,8 +95,7 @@ export const useAuthStore = defineStore('auth', {
 
     async fetchProfile() {
       try {
-        const { $api } = useNuxtApp()
-        const res: any = await $api('/profile')
+        const res: any = await authService().profile()
         const profile = res?.data ?? res
 
         this.token = useCookie('token').value || this.token
@@ -121,8 +115,7 @@ export const useAuthStore = defineStore('auth', {
     logout() {
       const logout = async () => {
         try {
-          const { $api } = useNuxtApp()
-          await $api('/logout', { method: 'POST' })
+          await authService().logout()
         } catch (e) {
           console.error('Logout API call failed:', e)
         } finally {

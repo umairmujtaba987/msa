@@ -7,7 +7,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:visible', 'saved'])
-const { $api } = useNuxtApp()
 
 const isVisible = ref(props.visible)
 const loading = ref(false)
@@ -59,16 +58,10 @@ const handleFinish = async () => {
 
     if (formState.id) {
       // Update
-      await $api(`/users/${formState.id}`, {
-        method: 'PUT',
-        body: payload
-      })
+      await userService().update(formState.id, payload)
     } else {
       // Create
-      await $api('/users', {
-        method: 'POST',
-        body: payload
-      })
+      await userService().create(payload)
     }
 
     isVisible.value = false

@@ -24,8 +24,6 @@ const selectedCourt = ref(null)
 const fetchDashboardStats = async () => {
   loading.value = true
   try {
-    const { $api } = useNuxtApp()
-    
     const params = new URLSearchParams()
     if (selectedSport.value) params.append('sport', selectedSport.value)
     if (selectedCourt.value) params.append('court', selectedCourt.value)
@@ -40,7 +38,7 @@ const fetchDashboardStats = async () => {
       }
     }
 
-    const res: any = await $api(`/dashboard/stats?${params.toString()}`)
+    const res: any = await dashboardService().getStats(params.toString())
     stats.value = res
   } catch (error) {
     console.error('Failed to load stats', error)
