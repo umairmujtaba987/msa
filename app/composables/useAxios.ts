@@ -27,7 +27,6 @@ export default async function (
   const method = (options.method || "GET").toUpperCase();
   const isStateChanging =
     ["POST", "PUT", "PATCH", "DELETE"].includes(method);
-  console.log(method, isStateChanging);
 
   // Get token from localStorage only on client side
   let token = null;
